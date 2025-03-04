@@ -5,6 +5,7 @@ import Hero from '@/components/Hero';
 import Footer from '@/components/Footer';
 import SearchSection from '@/components/SearchSection';
 import SampleQueries from '@/components/SampleQueries';
+import CollapsiblePanel from '@/components/CollapsiblePanel';
 
 const Index = () => {
   return (
@@ -18,12 +19,35 @@ const Index = () => {
         </div>
       </div>
       
-      <div className="relative z-10">
-        <NavBar />
-        <Hero />
-        <SearchSection />
-        <SampleQueries />
-        <Footer />
+      <div className="relative z-10 flex h-screen">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <NavBar />
+          <div className="flex-1 overflow-auto">
+            <Hero />
+            <SearchSection />
+            <SampleQueries />
+            <Footer />
+          </div>
+        </div>
+        
+        {/* Collapsible Panel */}
+        <CollapsiblePanel>
+          <h3 className="text-lg font-medium mb-4">Resources</h3>
+          <div className="space-y-3">
+            <div className="p-3 bg-gray-700/30 rounded-md hover:bg-gray-700/50 transition-colors cursor-pointer">
+              <h4 className="font-medium">Documentation</h4>
+              <p className="text-sm text-gray-400">Access guides and API references</p>
+            </div>
+            <div className="p-3 bg-gray-700/30 rounded-md hover:bg-gray-700/50 transition-colors cursor-pointer">
+              <h4 className="font-medium">Examples</h4>
+              <p className="text-sm text-gray-400">See code samples and demos</p>
+            </div>
+            <div className="p-3 bg-gray-700/30 rounded-md hover:bg-gray-700/50 transition-colors cursor-pointer">
+              <h4 className="font-medium">Community</h4>
+              <p className="text-sm text-gray-400">Join forums and discussions</p>
+            </div>
+          </div>
+        </CollapsiblePanel>
       </div>
     </div>
   );

@@ -21,10 +21,10 @@ const NavBar: React.FC = () => {
   }, []);
 
   const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'Features', href: '#features' },
+    { name: 'Home', href: '#' },
     { name: 'About', href: '#about' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Blog', href: '#blog' },
+    { name: 'Pricing', href: '#pricing' },
   ];
 
   return (
@@ -32,13 +32,13 @@ const NavBar: React.FC = () => {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         scrolled 
-          ? 'py-3 glassmorphism border-b border-border/50 shadow-sm' 
-          : 'py-6 bg-transparent'
+          ? 'py-3 bg-background border-b border-border/50 shadow-sm' 
+          : 'py-4 bg-transparent'
       )}
     >
       <div className="container mx-auto flex items-center justify-between">
-        <a href="#" className="text-xl font-semibold tracking-tighter">
-          Simplicity
+        <a href="#" className="text-xl font-bold tracking-tighter">
+          SimilAI
         </a>
 
         {/* Desktop Navigation */}
@@ -54,7 +54,7 @@ const NavBar: React.FC = () => {
               </a>
             ))}
           </div>
-          <Button variant="outlined">Get Started</Button>
+          <Button>Try Now</Button>
         </div>
 
         {/* Mobile Toggle */}
@@ -85,8 +85,8 @@ const NavBar: React.FC = () => {
               {link.name}
             </a>
           ))}
-          <Button className="mt-4 w-full" variant="primary">
-            Get Started
+          <Button className="mt-4 w-full">
+            Try Now
           </Button>
         </div>
       </div>

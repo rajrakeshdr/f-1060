@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Paperclip, ArrowRight } from 'lucide-react';
 import TransitionEffect from './TransitionEffect';
 import Button from './Button';
 
@@ -14,47 +14,32 @@ const SearchSection: React.FC = () => {
   };
 
   return (
-    <section className="pb-24">
+    <section className="pb-8">
       <div className="container mx-auto px-4">
-        <TransitionEffect animation="fade-up" delay={700}>
+        <TransitionEffect animation="fade-up" delay={300}>
           <div className="max-w-3xl mx-auto">
             <form onSubmit={handleSearch} className="relative">
-              <div className="relative flex items-center">
-                <Search className="absolute left-4 text-muted-foreground" size={20} />
+              <div className="relative flex items-center rounded-2xl bg-[#292b3d] shadow-lg">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Ask any question..."
-                  className="w-full py-4 pl-12 pr-36 rounded-full border border-border bg-background/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all text-lg"
+                  placeholder="Ask anything..."
+                  className="w-full py-4 px-5 rounded-2xl border border-gray-700/50 bg-transparent focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all text-lg text-gray-200"
                 />
-                <div className="absolute right-2">
-                  <Button type="submit" className="rounded-full px-6">
-                    Search
-                  </Button>
+                <div className="absolute right-3 flex space-x-1">
+                  <button className="p-2 text-gray-400 hover:text-gray-200 transition-colors" type="button">
+                    <Paperclip size={20} />
+                  </button>
+                  <button className="p-2 bg-purple-600 rounded-lg text-white hover:bg-purple-700 transition-colors" type="submit">
+                    <ArrowRight size={20} />
+                  </button>
                 </div>
               </div>
             </form>
-            <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm text-muted-foreground">
-              <span>Try asking:</span>
-              <button 
-                onClick={() => setSearchQuery("How do neural networks work?")}
-                className="text-primary hover:underline"
-              >
-                How do neural networks work?
-              </button>
-              <button 
-                onClick={() => setSearchQuery("Explain quantum computing")}
-                className="text-primary hover:underline"
-              >
-                Explain quantum computing
-              </button>
-              <button 
-                onClick={() => setSearchQuery("What is the difference between AI and ML?")}
-                className="text-primary hover:underline"
-              >
-                What is the difference between AI and ML?
-              </button>
+            <div className="mt-3 flex items-center">
+              <span className="text-xs text-gray-400 mr-2">Phind-70B</span>
+              <button className="text-xs text-gray-400 hover:text-gray-300 ml-auto px-2 py-1 rounded-md border border-gray-700/50">Advanced</button>
             </div>
           </div>
         </TransitionEffect>

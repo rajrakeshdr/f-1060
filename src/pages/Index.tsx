@@ -6,6 +6,9 @@ import Footer from '@/components/Footer';
 import SearchSection from '@/components/SearchSection';
 import SampleQueries from '@/components/SampleQueries';
 import CollapsiblePanel from '@/components/CollapsiblePanel';
+import { UserRound } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const Index = () => {
   return (
@@ -49,6 +52,30 @@ const Index = () => {
           </div>
         </CollapsiblePanel>
       </div>
+      
+      {/* Sign In Button - Fixed to bottom left */}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button 
+              className={cn(
+                "fixed left-6 bottom-6 z-20",
+                "flex items-center justify-center p-3",
+                "bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700",
+                "text-white rounded-full shadow-lg",
+                "border border-gray-700/50 transition-all duration-200",
+                "hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50"
+              )}
+              aria-label="Sign In"
+            >
+              <UserRound size={20} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            <p>Sign In</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 };

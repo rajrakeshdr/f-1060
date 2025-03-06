@@ -8,7 +8,7 @@ const Hero: React.FC = () => {
       <div className="container mx-auto px-4 text-center">
         <TransitionEffect animation="fade-up" delay={100}>
           <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 tracking-tight">
-            phind
+            fence
           </h1>
         </TransitionEffect>
       </div>

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import NavBar from '@/components/NavBar';
 import Hero from '@/components/Hero';
 import Footer from '@/components/Footer';
@@ -11,13 +11,86 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const Index = () => {
+  const gridRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const animateGrid = () => {
+      if (!gridRef.current) return;
+      
+      const gridCells = Array.from(gridRef.current.children);
+      const totalCells = gridCells.length;
+      const rows = 30;
+      const cols = 12;
+      
+      // Clear any existing highlights
+      gridCells.forEach(cell => {
+        cell.classList.remove('bg-white/20', 'transition-colors');
+        cell.classList.add('transition-colors', 'duration-1000');
+      });
+      
+      // Start highlighting from bottom right
+      const startAnimation = () => {
+        let currentIndex = 0;
+        
+        const highlightInterval = setInterval(() => {
+          if (currentIndex >= totalCells) {
+            clearInterval(highlightInterval);
+            
+            // Reset after some time
+            setTimeout(() => {
+              gridCells.forEach(cell => {
+                cell.classList.remove('bg-white/20');
+              });
+              
+              // Restart animation after a delay
+              setTimeout(startAnimation, 5000);
+            }, 3000);
+            
+            return;
+          }
+          
+          // Calculate positions to create a diagonal-like wave from bottom right to top left
+          for (let i = 0; i < 15; i++) {
+            const cellToHighlight = totalCells - 1 - (currentIndex + i * cols);
+            if (cellToHighlight >= 0 && cellToHighlight < totalCells) {
+              const cell = gridCells[cellToHighlight];
+              cell.classList.add('bg-white/20');
+              
+              // Remove highlight after some time
+              setTimeout(() => {
+                cell.classList.remove('bg-white/20');
+              }, 3000);
+            }
+          }
+          
+          currentIndex += 15;
+        }, 100);
+      };
+      
+      startAnimation();
+    };
+    
+    // Start the animation
+    animateGrid();
+    
+    // Clean up
+    return () => {
+      if (gridRef.current) {
+        const gridCells = Array.from(gridRef.current.children);
+        gridCells.forEach(cell => {
+          cell.classList.remove('bg-white/20', 'transition-colors');
+        });
+      }
+    };
+  }, []);
+  
   return (
     <div className="min-h-screen w-full bg-[#1a1c2e] text-white relative overflow-hidden">
       {/* Grid background */}
       <div className="absolute inset-0 z-0 opacity-20">
-        <div className="w-full h-full grid grid-cols-12 grid-rows-[repeat(30,1fr)]">
+        <div ref={gridRef} className="w-full h-full grid grid-cols-12 grid-rows-[repeat(30,1fr)]">
           {Array.from({ length: 12 * 30 }).map((_, i) => (
-            <div key={i} className="border-[0.5px] border-gray-500/20"></div>
+            <div key={i} className="border-[0.5px] border-gray-500/20 transition-colors duration-1000"></div>
           ))}
         </div>
       </div>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Search, Paperclip, ArrowRight } from 'lucide-react';
 import TransitionEffect from './TransitionEffect';
 import Button from './Button';
@@ -16,15 +16,6 @@ const SearchSection: React.FC<{ isFullPage?: boolean; onSearchStart?: () => void
   const [results, setResults] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
   const [hasSearched, setHasSearched] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Auto resize textarea based on content
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [searchQuery]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,20 +80,13 @@ const SearchSection: React.FC<{ isFullPage?: boolean; onSearchStart?: () => void
             <div className="max-w-3xl mx-auto">
               <form onSubmit={handleSearch} className="relative">
                 <div className="relative flex items-center rounded-2xl bg-[#292b3d] shadow-lg">
-                  <textarea
-                    ref={textareaRef}
+                  <input
+                    type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Ask anything..."
-                    className="w-full py-4 px-5 rounded-2xl border border-gray-700/50 bg-transparent focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all text-lg text-gray-200 min-h-[60px] max-h-[200px] resize-none"
+                    className="w-full py-4 px-5 rounded-2xl border border-gray-700/50 bg-transparent focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all text-lg text-gray-200"
                     disabled={isLoading}
-                    rows={1}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSearch(e);
-                      }
-                    }}
                   />
                   <div className="absolute right-3 flex space-x-1">
                     <button 

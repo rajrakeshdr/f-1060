@@ -7,7 +7,7 @@ import SearchSection from '@/components/SearchSection';
 import SampleQueries from '@/components/SampleQueries';
 import CollapsiblePanel from '@/components/CollapsiblePanel';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { UserRound } from 'lucide-react';
+import { UserRound, PanelRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from "@/integrations/supabase/client";
 import SignInModal from '@/components/SignInModal';
@@ -45,6 +45,10 @@ const Index = () => {
     setShowRightPanel(false);
   };
 
+  const toggleRightPanel = () => {
+    setShowRightPanel(!showRightPanel);
+  };
+
   return (
     <div className="min-h-screen w-full bg-[#1a1c2e] text-white relative overflow-hidden">
       <div className="relative z-10 flex h-screen">
@@ -60,7 +64,7 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Collapsible Panel - Only show if not searched */}
+        {/* Collapsible Panel - Toggle visibility */}
         {showRightPanel && (
           <CollapsiblePanel>
             <h3 className="text-lg font-medium mb-4">Resources</h3>
@@ -87,6 +91,33 @@ const Index = () => {
           </CollapsiblePanel>
         )}
       </div>
+      
+      {/* Toggle Panel Button - Only show after search */}
+      {hasSearched && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button 
+                className={cn(
+                  "fixed right-6 bottom-6 z-20",
+                  "flex items-center justify-center p-3",
+                  "bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700",
+                  "text-white rounded-full shadow-lg",
+                  "border border-gray-700/50 transition-all duration-200",
+                  "hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                )}
+                aria-label="Toggle Panel"
+                onClick={toggleRightPanel}
+              >
+                <PanelRight size={20} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              <p>{showRightPanel ? 'Hide Resources' : 'Show Resources'}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
       
       {/* Sign In Button or User Profile - Fixed to bottom left */}
       <TooltipProvider>

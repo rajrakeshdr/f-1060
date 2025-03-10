@@ -1,159 +1,141 @@
 
-import React, { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Search, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from "@/components/ui/skeleton";
+import { searchHuggingFace } from '@/services/searchService';
+import SearchSection from '@/components/SearchSection';
 
-// Type for cybersecurity post
-interface CyberSecurityPost {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  date: string;
-  source: string;
-  url: string;
-}
-
-// Mock data for cybersecurity posts
-const mockPosts: CyberSecurityPost[] = [
-  {
-    id: '1',
-    title: 'Latest Ransomware Attack Targets Healthcare Systems',
-    description: 'A new strain of ransomware has been targeting healthcare systems, affecting patient care and data security.',
-    imageUrl: 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3',
-    date: '2023-05-15',
-    source: 'CyberNews',
-    url: '#'
-  },
-  {
-    id: '2',
-    title: 'Critical Vulnerability Found in Popular VPN Service',
-    description: 'Security researchers have discovered a zero-day vulnerability affecting millions of VPN users worldwide.',
-    imageUrl: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3',
-    date: '2023-05-12',
-    source: 'Security Weekly',
-    url: '#'
-  },
-  {
-    id: '3',
-    title: 'New Phishing Campaign Targets Remote Workers',
-    description: 'A sophisticated phishing campaign is targeting remote workers with fake meeting invitations and login portals.',
-    imageUrl: 'https://images.unsplash.com/photo-1596810577213-1a603aaff58a?q=80&w=2671&auto=format&fit=crop&ixlib=rb-4.0.3',
-    date: '2023-05-10',
-    source: 'Threat Post',
-    url: '#'
-  },
-  {
-    id: '4',
-    title: 'AI-Powered Security Tools Show Promise in Early Tests',
-    description: 'New security solutions leveraging artificial intelligence have shown significant improvements in threat detection.',
-    imageUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3',
-    date: '2023-05-08',
-    source: 'Tech Security Today',
-    url: '#'
-  },
-  {
-    id: '5',
-    title: 'Major Cloud Provider Suffers Service Outage After Attack',
-    description: 'A distributed denial-of-service attack caused widespread outages for a major cloud service provider.',
-    imageUrl: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3',
-    date: '2023-05-05',
-    source: 'Cloud Security News',
-    url: '#'
-  },
-  {
-    id: '6',
-    title: 'Government Issues Advisory on Critical Infrastructure Protection',
-    description: 'Federal agencies have released new guidelines to help organizations secure critical infrastructure systems.',
-    imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3',
-    date: '2023-05-03',
-    source: 'Gov Security',
-    url: '#'
-  }
+// Sample cybersecurity topics for demonstration
+const CYBERSECURITY_TOPICS = [
+  "latest cybersecurity threats",
+  "zero-day vulnerabilities",
+  "ransomware protection",
+  "phishing attacks",
+  "security operations center",
+  "SOAR solutions",
+  "threat intelligence platforms"
 ];
 
-// Simulated fetch function
-const fetchCyberSecurityPosts = async (): Promise<CyberSecurityPost[]> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  return mockPosts;
-};
-
 const Discover = () => {
-  const { data: posts, isLoading, error } = useQuery({
-    queryKey: ['cyberSecurityPosts'],
-    queryFn: fetchCyberSecurityPosts,
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [posts, setPosts] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      setIsLoading(true);
+      
+      try {
+        // Randomly select a cybersecurity topic
+        const randomTopic = CYBERSECURITY_TOPICS[Math.floor(Math.random() * CYBERSECURITY_TOPICS.length)];
+        
+        const response = await searchHuggingFace(`Tell me about ${randomTopic} in cybersecurity. Format as 3 separate topics.`);
+        
+        if (response.error) {
+          setError(response.error);
+        } else {
+          // Split the response into separate posts
+          const contentBlocks = response.response
+            .split('\n\n')
+            .filter(block => block.trim().length > 0)
+            .slice(0, 4); // Limit to 4 posts
+          
+          setPosts(contentBlocks);
+        }
+      } catch (err) {
+        setError('Failed to load cybersecurity content. Please try again later.');
+        console.error('Error fetching content:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#1a1c2e] text-white">
       {/* Header with back button */}
       <header className="sticky top-0 z-10 bg-[#1a1c2e]/80 backdrop-blur-sm border-b border-gray-800">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="p-2 rounded-full hover:bg-gray-800 transition-colors">
-              <ArrowLeft size={20} />
-            </Link>
-            <h1 className="text-xl font-bold">Discover</h1>
-          </div>
-          
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search cybersecurity news..."
-              className="pl-10 pr-4 py-2 bg-gray-800/50 rounded-full border border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/50 w-64"
-            />
-            <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          </div>
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+          <Link to="/" className="p-2 rounded-full hover:bg-gray-800 transition-colors">
+            <ArrowLeft size={20} />
+          </Link>
+          <h1 className="text-xl font-bold">Discover</h1>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold mb-6">Recent Cybersecurity Posts</h2>
-        
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-gray-800/50 rounded-lg overflow-hidden border border-gray-700/30">
-                <Skeleton className="h-48 w-full" />
-                <div className="p-4 space-y-2">
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
+        <SearchSection isFullPage={true} />
+
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-6">Latest in Cybersecurity</h2>
+          
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-gray-800/30 border border-gray-700 rounded-lg p-6">
+                  <Skeleton className="h-5 w-3/4 mb-4" />
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-4/5 mb-2" />
+                  <Skeleton className="h-4 w-5/6 mb-4" />
+                  <Skeleton className="h-20 w-full rounded-md" />
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <div className="bg-red-900/20 border border-red-900/50 rounded-lg p-4 text-center">
-            <p>Failed to load cybersecurity posts. Please try again later.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts?.map(post => (
-              <article key={post.id} className="bg-gray-800/50 rounded-lg overflow-hidden border border-gray-700/30 hover:border-gray-600 transition-all hover:translate-y-[-2px]">
-                <div className="h-48 overflow-hidden">
-                  <img 
-                    src={post.imageUrl} 
-                    alt={post.title} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-lg mb-2">{post.title}</h3>
-                  <p className="text-gray-300 text-sm mb-3">{post.description}</p>
-                  <div className="flex justify-between items-center text-xs text-gray-400">
-                    <span>{post.source}</span>
-                    <span>{post.date}</span>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-6 text-center">
+              <p className="text-red-400">{error}</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {posts.map((post, index) => {
+                // Generate a title from the first sentence or first 50 chars
+                const title = post.split('.')[0].trim() + '.';
+                const content = post.substring(title.length).trim();
+                
+                // Generate a fake image for the post using a placeholder
+                const imageId = index + 1;
+                const imageUrl = `https://picsum.photos/seed/cyber${imageId}/600/400`;
+                
+                return (
+                  <div 
+                    key={index} 
+                    className="bg-gray-800/30 border border-gray-700 rounded-lg overflow-hidden flex flex-col hover:border-purple-500/50 transition-colors"
+                  >
+                    <div className="h-48 overflow-hidden">
+                      <img 
+                        src={imageUrl} 
+                        alt={`Cybersecurity topic ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-6 flex-1 flex flex-col">
+                      <h3 className="text-lg font-bold mb-2 text-purple-300">{title}</h3>
+                      <p className="text-gray-300 mb-4 flex-1">{content}</p>
+                      <div className="flex justify-between items-center mt-4">
+                        <span className="text-xs text-gray-400">Updated recently</span>
+                        <Link 
+                          to="#" 
+                          className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
+                        >
+                          Read more
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

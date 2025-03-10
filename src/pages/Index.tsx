@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import NavBar from '@/components/NavBar';
 import Hero from '@/components/Hero';
 import Footer from '@/components/Footer';
@@ -11,86 +11,13 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const Index = () => {
-  const gridRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    const animateGrid = () => {
-      if (!gridRef.current) return;
-      
-      const gridCells = Array.from(gridRef.current.children);
-      const totalCells = gridCells.length;
-      const rows = 30;
-      const cols = 12;
-      
-      // Clear any existing highlights
-      gridCells.forEach(cell => {
-        cell.classList.remove('bg-white/20', 'transition-colors');
-        cell.classList.add('transition-colors', 'duration-1000');
-      });
-      
-      // Start highlighting from bottom right
-      const startAnimation = () => {
-        let currentIndex = 0;
-        
-        const highlightInterval = setInterval(() => {
-          if (currentIndex >= totalCells) {
-            clearInterval(highlightInterval);
-            
-            // Reset after some time
-            setTimeout(() => {
-              gridCells.forEach(cell => {
-                cell.classList.remove('bg-white/20');
-              });
-              
-              // Restart animation after a delay
-              setTimeout(startAnimation, 5000);
-            }, 3000);
-            
-            return;
-          }
-          
-          // Calculate positions to create a diagonal-like wave from bottom right to top left
-          for (let i = 0; i < 15; i++) {
-            const cellToHighlight = totalCells - 1 - (currentIndex + i * cols);
-            if (cellToHighlight >= 0 && cellToHighlight < totalCells) {
-              const cell = gridCells[cellToHighlight];
-              cell.classList.add('bg-white/20');
-              
-              // Remove highlight after some time
-              setTimeout(() => {
-                cell.classList.remove('bg-white/20');
-              }, 3000);
-            }
-          }
-          
-          currentIndex += 15;
-        }, 100);
-      };
-      
-      startAnimation();
-    };
-    
-    // Start the animation
-    animateGrid();
-    
-    // Clean up
-    return () => {
-      if (gridRef.current) {
-        const gridCells = Array.from(gridRef.current.children);
-        gridCells.forEach(cell => {
-          cell.classList.remove('bg-white/20', 'transition-colors');
-        });
-      }
-    };
-  }, []);
-  
   return (
     <div className="min-h-screen w-full bg-[#1a1c2e] text-white relative overflow-hidden">
       {/* Grid background */}
       <div className="absolute inset-0 z-0 opacity-20">
-        <div ref={gridRef} className="w-full h-full grid grid-cols-12 grid-rows-[repeat(30,1fr)]">
+        <div className="w-full h-full grid grid-cols-12 grid-rows-[repeat(30,1fr)]">
           {Array.from({ length: 12 * 30 }).map((_, i) => (
-            <div key={i} className="border-[0.5px] border-gray-500/20 transition-colors duration-1000"></div>
+            <div key={i} className="border-[0.5px] border-gray-500/20"></div>
           ))}
         </div>
       </div>
@@ -110,18 +37,24 @@ const Index = () => {
         <CollapsiblePanel>
           <h3 className="text-lg font-medium mb-4">Resources</h3>
           <div className="space-y-3">
-            <div className="p-3 bg-gray-700/30 rounded-md hover:bg-gray-700/50 transition-colors cursor-pointer">
-              <h4 className="font-medium">Documentation</h4>
-              <p className="text-sm text-gray-400">Access guides and API references</p>
-            </div>
-            <div className="p-3 bg-gray-700/30 rounded-md hover:bg-gray-700/50 transition-colors cursor-pointer">
-              <h4 className="font-medium">Examples</h4>
-              <p className="text-sm text-gray-400">See code samples and demos</p>
-            </div>
-            <div className="p-3 bg-gray-700/30 rounded-md hover:bg-gray-700/50 transition-colors cursor-pointer">
-              <h4 className="font-medium">Community</h4>
-              <p className="text-sm text-gray-400">Join forums and discussions</p>
-            </div>
+            <PanelItem
+              title="Discover"
+              description="Explore cybersecurity content"
+              icon="Search"
+              link="/discover"
+            />
+            <PanelItem
+              title="Spaces"
+              description="Access your custom spaces"
+              icon="LayoutGrid"
+              link="/spaces"
+            />
+            <PanelItem
+              title="Library"
+              description="Browse saved resources"
+              icon="Library"
+              link="/library"
+            />
           </div>
         </CollapsiblePanel>
       </div>
@@ -150,6 +83,36 @@ const Index = () => {
         </Tooltip>
       </TooltipProvider>
     </div>
+  );
+};
+
+// Panel item component for the collapsible panel
+const PanelItem = ({ title, description, icon, link }: { 
+  title: string; 
+  description: string; 
+  icon: "Search" | "LayoutGrid" | "Library"; 
+  link: string;
+}) => {
+  // Dynamic icon import
+  const Icon = React.lazy(() => import('lucide-react').then(mod => {
+    return { default: mod[icon] };
+  }));
+  
+  return (
+    <a 
+      href={link} 
+      className="block p-3 bg-gray-700/30 rounded-md hover:bg-gray-700/50 transition-colors cursor-pointer"
+    >
+      <div className="flex items-center gap-3">
+        <React.Suspense fallback={<div className="w-5 h-5" />}>
+          <Icon size={20} />
+        </React.Suspense>
+        <div>
+          <h4 className="font-medium">{title}</h4>
+          <p className="text-sm text-gray-400">{description}</p>
+        </div>
+      </div>
+    </a>
   );
 };
 

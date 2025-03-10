@@ -17,6 +17,7 @@ const Index = () => {
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [showRightPanel, setShowRightPanel] = useState(true);
 
   // Check if user is authenticated
   useEffect(() => {
@@ -39,43 +40,52 @@ const Index = () => {
     };
   }, []);
 
+  const handleSearchStart = () => {
+    setHasSearched(true);
+    setShowRightPanel(false);
+  };
+
   return (
     <div className="min-h-screen w-full bg-[#1a1c2e] text-white relative overflow-hidden">
       <div className="relative z-10 flex h-screen">
         <div className="flex-1 flex flex-col overflow-hidden">
           <NavBar />
           <div className="flex-1 overflow-auto">
-            <Hero />
-            <SearchSection />
-            <SampleQueries />
-            <Footer />
+            {!hasSearched && <Hero />}
+            <SearchSection 
+              onSearchStart={handleSearchStart}
+            />
+            {!hasSearched && <SampleQueries />}
+            {!hasSearched && <Footer />}
           </div>
         </div>
         
-        {/* Collapsible Panel */}
-        <CollapsiblePanel>
-          <h3 className="text-lg font-medium mb-4">Resources</h3>
-          <div className="space-y-3">
-            <PanelItem
-              title="Discover"
-              description="Explore cybersecurity content"
-              icon="Search"
-              link="/discover"
-            />
-            <PanelItem
-              title="Spaces"
-              description="Access your custom spaces"
-              icon="LayoutGrid"
-              link="/spaces"
-            />
-            <PanelItem
-              title="Library"
-              description="Browse saved resources"
-              icon="Library"
-              link="/library"
-            />
-          </div>
-        </CollapsiblePanel>
+        {/* Collapsible Panel - Only show if not searched */}
+        {showRightPanel && (
+          <CollapsiblePanel>
+            <h3 className="text-lg font-medium mb-4">Resources</h3>
+            <div className="space-y-3">
+              <PanelItem
+                title="Discover"
+                description="Explore cybersecurity content"
+                icon="Search"
+                link="/discover"
+              />
+              <PanelItem
+                title="Spaces"
+                description="Access your custom spaces"
+                icon="LayoutGrid"
+                link="/spaces"
+              />
+              <PanelItem
+                title="Library"
+                description="Browse saved resources"
+                icon="Library"
+                link="/library"
+              />
+            </div>
+          </CollapsiblePanel>
+        )}
       </div>
       
       {/* Sign In Button or User Profile - Fixed to bottom left */}

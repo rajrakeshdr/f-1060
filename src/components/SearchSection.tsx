@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, Paperclip, ArrowRight } from 'lucide-react';
 import TransitionEffect from './TransitionEffect';
 import Button from './Button';
@@ -7,12 +7,24 @@ import { searchHuggingFace } from '@/services/searchService';
 import SearchResults from './SearchResults';
 import { toast } from "@/components/ui/use-toast";
 
-const SearchSection: React.FC<{ isFullPage?: boolean }> = ({ isFullPage = false }) => {
+const SearchSection: React.FC<{ isFullPage?: boolean; onSearchStart?: () => void }> = ({ 
+  isFullPage = false,
+  onSearchStart 
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
   const [hasSearched, setHasSearched] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto resize textarea based on content
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [searchQuery]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +40,11 @@ const SearchSection: React.FC<{ isFullPage?: boolean }> = ({ isFullPage = false 
 
     setIsLoading(true);
     setError(undefined);
+    
+    // Notify parent component that search has started (to hide overlay)
+    if (onSearchStart) {
+      onSearchStart();
+    }
     
     try {
       const response = await searchHuggingFace(searchQuery);
@@ -56,25 +73,36 @@ const SearchSection: React.FC<{ isFullPage?: boolean }> = ({ isFullPage = false 
     }
   };
 
-  const sectionClasses = isFullPage 
-    ? "pb-4 pt-4" 
-    : hasSearched ? "pb-4 pt-4" : "pb-8";
+  const sectionClasses = hasSearched 
+    ? "fixed bottom-0 left-0 right-0 z-20 pb-6 pt-4 bg-[#1a1c2e] border-t border-gray-700/50"
+    : isFullPage ? "pb-4 pt-4" : "pb-8";
 
   return (
     <>
+      {hasSearched && (
+        <SearchResults isLoading={isLoading} results={results} error={error} />
+      )}
+    
       <section className={sectionClasses}>
         <div className="container mx-auto px-4">
           <TransitionEffect animation="fade-up" delay={300}>
             <div className="max-w-3xl mx-auto">
               <form onSubmit={handleSearch} className="relative">
                 <div className="relative flex items-center rounded-2xl bg-[#292b3d] shadow-lg">
-                  <input
-                    type="text"
+                  <textarea
+                    ref={textareaRef}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Ask anything..."
-                    className="w-full py-4 px-5 rounded-2xl border border-gray-700/50 bg-transparent focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all text-lg text-gray-200"
+                    className="w-full py-4 px-5 rounded-2xl border border-gray-700/50 bg-transparent focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all text-lg text-gray-200 min-h-[60px] max-h-[200px] resize-none"
                     disabled={isLoading}
+                    rows={1}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSearch(e);
+                      }
+                    }}
                   />
                   <div className="absolute right-3 flex space-x-1">
                     <button 
@@ -98,18 +126,16 @@ const SearchSection: React.FC<{ isFullPage?: boolean }> = ({ isFullPage = false 
                   </div>
                 </div>
               </form>
-              <div className="mt-3 flex items-center">
-                <span className="text-xs text-gray-400 mr-2">Phind-70B</span>
-                <button className="text-xs text-gray-400 hover:text-gray-300 ml-auto px-2 py-1 rounded-md border border-gray-700/50">Advanced</button>
-              </div>
+              {!hasSearched && (
+                <div className="mt-3 flex items-center">
+                  <span className="text-xs text-gray-400 mr-2">Phind-70B</span>
+                  <button className="text-xs text-gray-400 hover:text-gray-300 ml-auto px-2 py-1 rounded-md border border-gray-700/50">Advanced</button>
+                </div>
+              )}
             </div>
           </TransitionEffect>
         </div>
       </section>
-
-      {hasSearched && (
-        <SearchResults isLoading={isLoading} results={results} error={error} />
-      )}
     </>
   );
 };

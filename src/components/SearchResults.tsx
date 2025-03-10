@@ -12,7 +12,7 @@ interface SearchResultsProps {
 const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error }) => {
   if (isLoading) {
     return (
-      <div className="w-full max-w-4xl mx-auto mt-8 px-4 py-6">
+      <div className="w-full max-w-4xl mx-auto mb-24 px-4 py-6">
         <Skeleton className="h-8 w-3/4 mb-4" />
         <Skeleton className="h-4 w-full mb-2" />
         <Skeleton className="h-4 w-full mb-2" />
@@ -24,7 +24,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
 
   if (error) {
     return (
-      <div className="w-full max-w-4xl mx-auto mt-8 px-4 py-6 bg-red-900/20 border border-red-700 rounded-lg">
+      <div className="w-full max-w-4xl mx-auto mb-24 px-4 py-6 bg-red-900/20 border border-red-700 rounded-lg">
         <h3 className="text-xl font-medium text-red-400 mb-2">Error</h3>
         <p className="text-white">{error}</p>
       </div>
@@ -37,7 +37,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
 
   return (
     <TransitionEffect animation="fade-up" delay={300}>
-      <div className="w-full max-w-4xl mx-auto mt-8 px-4 py-6 bg-gray-800/30 border border-gray-700 rounded-lg">
+      <div className="w-full max-w-4xl mx-auto mb-24 px-4 py-6 bg-gray-800/30 border border-gray-700 rounded-lg">
         <h3 className="text-xl font-medium text-purple-400 mb-4">Search Results</h3>
         <div className="prose prose-invert max-w-none">
           {results.split('\n').map((paragraph, index) => (

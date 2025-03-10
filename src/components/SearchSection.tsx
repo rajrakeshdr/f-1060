@@ -1,8 +1,7 @@
 
 import React, { useState } from 'react';
-import { Search, Paperclip, ArrowRight } from 'lucide-react';
+import { Paperclip, ArrowRight } from 'lucide-react';
 import TransitionEffect from './TransitionEffect';
-import Button from './Button';
 import { searchHuggingFace } from '@/services/searchService';
 import SearchResults from './SearchResults';
 import { toast } from "@/components/ui/use-toast";
@@ -64,59 +63,57 @@ const SearchSection: React.FC<{ isFullPage?: boolean; onSearchStart?: () => void
     }
   };
 
-  const sectionClasses = hasSearched 
-    ? "fixed bottom-0 left-0 right-0 z-20 pb-6 pt-4 bg-[#1a1c2e] border-t border-gray-700/50"
-    : isFullPage ? "pb-4 pt-4" : "pb-8";
-
   return (
     <>
       {hasSearched && (
         <SearchResults isLoading={isLoading} results={results} error={error} />
       )}
     
-      <section className={sectionClasses}>
-        <div className="container mx-auto px-4">
+      <section className="fixed bottom-0 left-0 right-0 z-20 pb-6 pt-4 bg-[#17182a] border-t border-gray-700/50">
+        <div className="container mx-auto px-4 max-w-6xl">
           <TransitionEffect animation="fade-up" delay={300}>
-            <div className="max-w-3xl mx-auto">
-              <form onSubmit={handleSearch} className="relative">
-                <div className="relative flex items-center rounded-2xl bg-[#292b3d] shadow-lg">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Ask anything..."
-                    className="w-full py-4 px-5 rounded-2xl border border-gray-700/50 bg-transparent focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all text-lg text-gray-200"
+            <form onSubmit={handleSearch} className="relative">
+              <div className="relative flex items-center rounded-lg bg-[#1e202f] shadow-lg">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Type your message..."
+                  className="w-full py-4 px-5 rounded-lg border border-gray-700/50 bg-transparent focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all text-lg text-gray-200"
+                  disabled={isLoading}
+                />
+                <div className="absolute right-3 flex space-x-1">
+                  <button 
+                    className="p-2 text-gray-400 hover:text-gray-200 transition-colors" 
+                    type="button"
                     disabled={isLoading}
-                  />
-                  <div className="absolute right-3 flex space-x-1">
-                    <button 
-                      className="p-2 text-gray-400 hover:text-gray-200 transition-colors" 
-                      type="button"
-                      disabled={isLoading}
-                    >
-                      <Paperclip size={20} />
-                    </button>
-                    <button 
-                      className={`p-2 ${isLoading ? 'bg-purple-800' : 'bg-purple-600'} rounded-lg text-white hover:bg-purple-700 transition-colors`} 
-                      type="submit"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-solid border-white border-t-transparent"></div>
-                      ) : (
-                        <ArrowRight size={20} />
-                      )}
-                    </button>
-                  </div>
+                  >
+                    <Paperclip size={20} />
+                  </button>
+                  <button 
+                    className={`p-2 ${isLoading ? 'bg-purple-800' : 'bg-purple-600'} rounded-lg text-white hover:bg-purple-700 transition-colors`} 
+                    type="submit"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-solid border-white border-t-transparent"></div>
+                    ) : (
+                      <ArrowRight size={20} />
+                    )}
+                  </button>
                 </div>
-              </form>
-              {!hasSearched && (
-                <div className="mt-3 flex items-center">
-                  <span className="text-xs text-gray-400 mr-2">Phind-70B</span>
-                  <button className="text-xs text-gray-400 hover:text-gray-300 ml-auto px-2 py-1 rounded-md border border-gray-700/50">Advanced</button>
+              </div>
+              <div className="flex justify-between items-center mt-2">
+                <div className="flex items-center">
+                  <span className="text-xs text-gray-400 px-2 py-0.5 rounded bg-gray-800/50 border border-gray-700/50">Phind-70B</span>
                 </div>
-              )}
-            </div>
+                {!isLoading && (
+                  <button className="text-xs text-gray-400 hover:text-gray-300 px-2 py-0.5 rounded border border-gray-700/50">
+                    Advanced
+                  </button>
+                )}
+              </div>
+            </form>
           </TransitionEffect>
         </div>
       </section>

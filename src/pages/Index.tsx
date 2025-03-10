@@ -7,7 +7,7 @@ import SearchSection from '@/components/SearchSection';
 import SampleQueries from '@/components/SampleQueries';
 import CollapsiblePanel from '@/components/CollapsiblePanel';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { UserRound, PanelRight } from 'lucide-react';
+import { UserRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from "@/integrations/supabase/client";
 import SignInModal from '@/components/SignInModal';
@@ -17,7 +17,7 @@ const Index = () => {
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [hasSearched, setHasSearched] = useState(false);
-  const [showRightPanel, setShowRightPanel] = useState(true);
+  const [showRightPanel, setShowRightPanel] = useState(false);
 
   // Check if user is authenticated
   useEffect(() => {
@@ -42,15 +42,11 @@ const Index = () => {
 
   const handleSearchStart = () => {
     setHasSearched(true);
-    setShowRightPanel(false);
-  };
-
-  const toggleRightPanel = () => {
-    setShowRightPanel(!showRightPanel);
+    setShowRightPanel(false); // Always hide panel when search begins
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#1a1c2e] text-white relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#17182a] text-white relative overflow-hidden">
       <div className="relative z-10 flex h-screen">
         <div className="flex-1 flex flex-col overflow-hidden">
           <NavBar />
@@ -63,61 +59,7 @@ const Index = () => {
             {!hasSearched && <Footer />}
           </div>
         </div>
-        
-        {/* Collapsible Panel - Toggle visibility */}
-        {showRightPanel && (
-          <CollapsiblePanel>
-            <h3 className="text-lg font-medium mb-4">Resources</h3>
-            <div className="space-y-3">
-              <PanelItem
-                title="Discover"
-                description="Explore cybersecurity content"
-                icon="Search"
-                link="/discover"
-              />
-              <PanelItem
-                title="Spaces"
-                description="Access your custom spaces"
-                icon="LayoutGrid"
-                link="/spaces"
-              />
-              <PanelItem
-                title="Library"
-                description="Browse saved resources"
-                icon="Library"
-                link="/library"
-              />
-            </div>
-          </CollapsiblePanel>
-        )}
       </div>
-      
-      {/* Toggle Panel Button - Only show after search */}
-      {hasSearched && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button 
-                className={cn(
-                  "fixed right-6 bottom-6 z-20",
-                  "flex items-center justify-center p-3",
-                  "bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700",
-                  "text-white rounded-full shadow-lg",
-                  "border border-gray-700/50 transition-all duration-200",
-                  "hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                )}
-                aria-label="Toggle Panel"
-                onClick={toggleRightPanel}
-              >
-                <PanelRight size={20} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              <p>{showRightPanel ? 'Hide Resources' : 'Show Resources'}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
       
       {/* Sign In Button or User Profile - Fixed to bottom left */}
       <TooltipProvider>
@@ -126,7 +68,7 @@ const Index = () => {
             {user ? (
               <div 
                 className={cn(
-                  "fixed left-6 bottom-6 z-20"
+                  "fixed left-6 bottom-24 z-30"
                 )}
               >
                 <UserProfile user={user} />
@@ -134,7 +76,7 @@ const Index = () => {
             ) : (
               <button 
                 className={cn(
-                  "fixed left-6 bottom-6 z-20",
+                  "fixed left-6 bottom-24 z-30",
                   "flex items-center justify-center p-3",
                   "bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700",
                   "text-white rounded-full shadow-lg",

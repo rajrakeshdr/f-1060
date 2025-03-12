@@ -49,7 +49,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
   // Split the response into paragraphs for better display
   const paragraphs = results.split('\n').filter(p => p.trim() !== '');
   
-  // Mock sources for the UI demonstration
+  // Sources for the UI demonstration
   const sources = [
     {
       id: 1,

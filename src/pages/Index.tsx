@@ -46,7 +46,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#17182a] text-white relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#2D2F3A] text-white relative overflow-hidden grid-pattern">
       <div className="relative z-10 flex h-screen">
         <div className="flex-1 flex flex-col overflow-hidden">
           <NavBar />
@@ -101,36 +101,6 @@ const Index = () => {
         onClose={() => setIsSignInModalOpen(false)} 
       />
     </div>
-  );
-};
-
-// Panel item component for the collapsible panel
-const PanelItem = ({ title, description, icon, link }: { 
-  title: string; 
-  description: string; 
-  icon: "Search" | "LayoutGrid" | "Library"; 
-  link: string;
-}) => {
-  // Dynamic icon import
-  const Icon = React.lazy(() => import('lucide-react').then(mod => {
-    return { default: mod[icon] };
-  }));
-  
-  return (
-    <a 
-      href={link} 
-      className="block p-3 bg-gray-700/30 rounded-md hover:bg-gray-700/50 transition-colors cursor-pointer"
-    >
-      <div className="flex items-center gap-3">
-        <React.Suspense fallback={<div className="w-5 h-5" />}>
-          <Icon size={20} />
-        </React.Suspense>
-        <div>
-          <h4 className="font-medium">{title}</h4>
-          <p className="text-sm text-gray-400">{description}</p>
-        </div>
-      </div>
-    </a>
   );
 };
 

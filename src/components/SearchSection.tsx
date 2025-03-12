@@ -78,7 +78,7 @@ const SearchSection: React.FC<{ isFullPage?: boolean; onSearchStart?: () => void
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Type your message..."
+                  placeholder="Ask anything..."
                   className="w-full py-4 px-5 rounded-lg border border-gray-700/50 bg-transparent focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all text-lg text-gray-200"
                   disabled={isLoading}
                 />

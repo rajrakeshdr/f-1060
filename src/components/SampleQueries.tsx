@@ -31,7 +31,7 @@ const SampleQueries: React.FC = () => {
             {sampleQueries.map((query, index) => (
               <button
                 key={index}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#292b3d] text-gray-300 text-sm hover:bg-[#32344a] transition-colors border border-gray-700/50"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#292b3d] text-gray-300 text-sm hover:bg-[#6B46C1] transition-colors border border-gray-700/50"
               >
                 {query.icon}
                 <span>{query.text}</span>

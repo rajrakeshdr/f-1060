@@ -3,6 +3,7 @@ import React from 'react';
 import { Skeleton } from "@/components/ui/skeleton";
 import TransitionEffect from './TransitionEffect';
 import { ExternalLink, ThumbsUp, ThumbsDown, Copy, Share2, Expand } from 'lucide-react';
+import { cn } from "@/lib/utils";
 
 interface SearchResultsProps {
   isLoading: boolean;

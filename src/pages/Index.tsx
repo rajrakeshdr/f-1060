@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import NavBar from '@/components/NavBar';
 import Hero from '@/components/Hero';
@@ -46,7 +47,7 @@ const Index = () => {
   return (
     <div className="flex min-h-screen bg-[#2D2F3A] text-white relative overflow-hidden grid-pattern">
       <Sidebar />
-      <div className="flex-1 ml-64">
+      <div className="flex-1 ml-64 transition-all duration-300">
         <div className="relative z-10 flex h-screen">
           <div className="flex-1 flex flex-col overflow-hidden">
             <NavBar />
@@ -63,7 +64,7 @@ const Index = () => {
         
         {/* Sign In Button or User Profile */}
         <div className={cn(
-          "fixed left-[280px] bottom-24 z-30"
+          "fixed right-6 bottom-24 z-40"
         )}>
           {user ? (
             <UserProfile user={user} />

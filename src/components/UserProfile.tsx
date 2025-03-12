@@ -1,8 +1,9 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LogOut } from 'lucide-react';
+import { LogOut, Settings } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -58,6 +59,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="bg-gray-800 border border-gray-700 text-white">
+          <Link to="/settings">
+            <DropdownMenuItem className="cursor-pointer focus:bg-gray-700">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+          </Link>
           <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer focus:bg-gray-700">
             <LogOut className="mr-2 h-4 w-4" />
             <span>Sign out</span>

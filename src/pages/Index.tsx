@@ -54,7 +54,7 @@ const Index = () => {
   return (
     <div className="flex min-h-screen bg-[#2D2F3A] text-white relative overflow-hidden grid-pattern">
       <Sidebar />
-      <div className="flex-1 ml-64 transition-all duration-300">
+      <div className="flex-1 ml-20 transition-all duration-300"> {/* Adjusted margin for collapsed sidebar */}
         <div className="relative z-10 flex h-screen">
           <div className="flex-1 flex flex-col overflow-hidden">
             <NavBar />
@@ -72,7 +72,7 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Sign In Button or User Profile */}
+        {/* Sign In Button or User Profile - Fixed position with z-index to avoid overlap */}
         <div className={cn(
           "fixed right-6 bottom-24 z-40"
         )}>

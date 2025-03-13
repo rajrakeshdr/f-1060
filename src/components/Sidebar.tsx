@@ -1,12 +1,15 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Compass, Library, Layout, Crown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Compass, Library, Layout, ChevronLeft, ChevronRight, Building, Plus } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 const Sidebar = () => {
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true); // Default collapsed
+  const [organizations, setOrganizations] = useState([
+    { name: "Personal" }
+  ]);
 
   const menuItems = [
     { icon: Home, label: 'Home', path: '/' },
@@ -17,6 +20,12 @@ const Sidebar = () => {
 
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
+  };
+
+  const addOrganization = () => {
+    // In a real app, this would open a modal or form
+    const newOrg = { name: `Organization ${organizations.length + 1}` };
+    setOrganizations([...organizations, newOrg]);
   };
 
   return (
@@ -32,6 +41,38 @@ const Sidebar = () => {
       >
         {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
       </button>
+
+      {/* Organizations */}
+      <div className="mb-6">
+        {!collapsed && (
+          <div className="flex items-center justify-between mb-2 px-4">
+            <h3 className="text-sm font-medium text-gray-400">Organizations</h3>
+            <button 
+              onClick={addOrganization}
+              className="text-gray-400 hover:text-white"
+              aria-label="Add organization"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+        )}
+        <ul className="space-y-1">
+          {organizations.map((org, index) => (
+            <li key={index}>
+              <button
+                className={cn(
+                  "flex items-center gap-3 px-4 py-2 rounded-lg transition-colors w-full text-left",
+                  "text-gray-300 hover:text-white hover:bg-gray-700/50",
+                  collapsed && "justify-center px-2"
+                )}
+              >
+                <Building size={20} />
+                {!collapsed && <span>{org.name}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       {/* Navigation Menu */}
       <nav className="flex-1">
@@ -60,25 +101,6 @@ const Sidebar = () => {
           })}
         </ul>
       </nav>
-
-      {/* Pro Button */}
-      <div className={cn(
-        "p-4 bg-gray-800/50 rounded-lg mt-4",
-        collapsed && "p-2"
-      )}>
-        {!collapsed && (
-          <div className="flex items-center gap-2 mb-2">
-            <Crown className="text-yellow-500" size={20} />
-            <span className="font-medium text-white">Try Pro</span>
-          </div>
-        )}
-        <button className={cn(
-          "w-full px-4 py-2 text-sm text-white bg-[#6B46C1] rounded-lg hover:bg-[#5B3AAE] transition-colors",
-          collapsed && "p-2"
-        )}>
-          {collapsed ? <Crown className="text-yellow-500 mx-auto" size={16} /> : "Learn More"}
-        </button>
-      </div>
     </aside>
   );
 };

@@ -2,100 +2,122 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { cn } from "@/lib/utils";
-import { searchHuggingFace } from '@/services/searchService';
 import { Skeleton } from "@/components/ui/skeleton";
 import TransitionEffect from '@/components/TransitionEffect';
+import { toast } from "@/components/ui/use-toast";
 
 const categories = [
-  "For You",
-  "Top",
-  "Tech & Science",
-  "Finance",
-  "Arts & Culture",
-  "Sports"
+  "Breaking News",
+  "Data Breaches",
+  "Cyber Attacks",
+  "Vulnerabilities",
+  "Threat Intel",
+  "Security Tools"
 ];
 
 // Define the FeedItem interface
 interface FeedItem {
   title: string;
-  image: string;
-  category: string;
-  description: string;
-  source?: string;
+  link: string;
+  pubDate: string;
+  content: string;
+  contentSnippet: string;
+  guid: string;
+  isoDate: string;
+  creator?: string;
+  thumbnail?: string;
 }
 
 const Discover = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("For You");
+  const [selectedCategory, setSelectedCategory] = useState<string>("Breaking News");
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCybersecurityFeed = async () => {
+    const fetchHackerNewsFeed = async () => {
       setIsLoading(true);
       setError(null);
       
       try {
-        // Define queries for each category
-        const queries: Record<string, string> = {
-          "For You": "latest cybersecurity news and alerts",
-          "Top": "top cybersecurity threats and vulnerabilities",
-          "Tech & Science": "cybersecurity technology and research",
-          "Finance": "financial cybersecurity threats and incidents",
-          "Arts & Culture": "cybersecurity in media and entertainment",
-          "Sports": "cybersecurity in sports industry"
-        };
+        // Use a proxy or CORS-anywhere to avoid CORS issues
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        const feedUrl = encodeURIComponent('https://feeds.feedburner.com/TheHackersNews');
         
-        const query = queries[selectedCategory] || queries["For You"];
-        const result = await searchHuggingFace(query);
+        const response = await fetch(`${proxyUrl}${feedUrl}`);
         
-        if (result.error) {
-          setError(result.error);
-          setFeedItems([]);
-        } else if (result.response) {
-          // Parse the response into feed items
-          const parsedItems = parseResponseToFeedItems(result.response, selectedCategory);
-          setFeedItems(parsedItems);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
         }
+        
+        const xmlText = await response.text();
+        
+        // Parse XML to JSON
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        const items = xmlDoc.querySelectorAll("item");
+        
+        const parsedItems: FeedItem[] = [];
+        
+        items.forEach((item) => {
+          // Extract content with images
+          const content = item.querySelector("content\\:encoded")?.textContent || 
+                          item.querySelector("description")?.textContent || "";
+          
+          // Extract thumbnail from content
+          const imgMatch = content.match(/<img[^>]+src="([^"]+)"/);
+          const thumbnail = imgMatch ? imgMatch[1] : "/placeholder.svg";
+          
+          // Filter by category if needed
+          const categories = Array.from(item.querySelectorAll("category")).map(cat => cat.textContent);
+          const matchesCategory = selectedCategory === "Breaking News" || 
+                                 categories.some(cat => cat?.toLowerCase().includes(selectedCategory.toLowerCase()));
+          
+          if (matchesCategory || selectedCategory === "Breaking News") {
+            parsedItems.push({
+              title: item.querySelector("title")?.textContent || "",
+              link: item.querySelector("link")?.textContent || "",
+              pubDate: item.querySelector("pubDate")?.textContent || "",
+              content: content,
+              contentSnippet: content.replace(/<[^>]+>/g, '').substring(0, 150) + "...",
+              guid: item.querySelector("guid")?.textContent || "",
+              isoDate: new Date(item.querySelector("pubDate")?.textContent || "").toISOString(),
+              creator: item.querySelector("dc\\:creator")?.textContent || "The Hacker News",
+              thumbnail: thumbnail
+            });
+          }
+        });
+        
+        setFeedItems(parsedItems);
       } catch (err) {
-        console.error("Error fetching cybersecurity feed:", err);
-        setError("Failed to fetch cybersecurity feed. Please try again later.");
-        setFeedItems([]);
+        console.error("Error fetching hacker news feed:", err);
+        setError("Failed to fetch security news. Please try again later.");
+        toast({
+          title: "Error loading feed",
+          description: "Could not load the cybersecurity feed. Check your network connection.",
+          variant: "destructive"
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchCybersecurityFeed();
+    fetchHackerNewsFeed();
   }, [selectedCategory]);
 
-  // Helper function to parse API response into feed items
-  const parseResponseToFeedItems = (response: string, category: string): FeedItem[] => {
-    // Split the response by paragraphs and create feed items
-    const paragraphs = response.split('\n\n').filter(p => p.trim().length > 0);
-    
-    // Create at least 6 feed items from the response
-    return paragraphs.slice(0, Math.min(paragraphs.length, 12)).map((paragraph, index) => {
-      // Generate a somewhat relevant title from the paragraph
-      const sentences = paragraph.split('. ');
-      const title = sentences[0].length > 50 
-        ? sentences[0].substring(0, 50) + '...' 
-        : sentences[0];
-        
-      return {
-        title: title.trim(),
-        image: "/placeholder.svg",
-        category: category,
-        description: paragraph.substring(0, 120) + (paragraph.length > 120 ? '...' : ''),
-        source: `Cybersecurity Alert #${index + 1}`
-      };
+  function formatDate(dateString: string) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
     });
-  };
+  }
 
   return (
     <div className="flex min-h-screen bg-[#2D2F3A] text-white">
       <Sidebar />
-      <div className="flex-1 ml-64 p-6">
+      <div className="flex-1 ml-20 p-6"> {/* Adjusted margin for collapsed sidebar */}
         {/* Categories */}
         <div className="mb-8 overflow-x-auto">
           <div className="flex gap-4">
@@ -140,23 +162,30 @@ const Discover = () => {
             // Feed items
             feedItems.map((item, index) => (
               <TransitionEffect key={index} animation="fade-up" delay={100 * index}>
-                <div
-                  className="bg-[#3A3C4A] rounded-lg overflow-hidden hover:ring-2 hover:ring-purple-500/50 transition-all cursor-pointer h-full flex flex-col"
+                <a 
+                  href={item.link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-[#3A3C4A] rounded-lg overflow-hidden hover:ring-2 hover:ring-purple-500/50 transition-all block h-full flex flex-col"
                 >
                   <img
-                    src={item.image}
+                    src={item.thumbnail || "/placeholder.svg"}
                     alt={item.title}
                     className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/placeholder.svg";
+                    }}
                   />
                   <div className="p-4 flex flex-col flex-grow">
-                    <span className="text-sm text-purple-400">{item.category}</span>
+                    <span className="text-sm text-purple-400">{selectedCategory}</span>
                     <h3 className="text-lg font-medium mt-2 mb-2">{item.title}</h3>
-                    <p className="text-sm text-gray-300 mb-3 flex-grow">{item.description}</p>
-                    {item.source && (
-                      <div className="text-xs text-gray-400 mt-auto">Source: {item.source}</div>
-                    )}
+                    <p className="text-sm text-gray-300 mb-3 flex-grow">{item.contentSnippet}</p>
+                    <div className="text-xs text-gray-400 mt-auto flex justify-between">
+                      <span>{item.creator || "The Hacker News"}</span>
+                      <span>{formatDate(item.pubDate)}</span>
+                    </div>
                   </div>
-                </div>
+                </a>
               </TransitionEffect>
             ))
           )}

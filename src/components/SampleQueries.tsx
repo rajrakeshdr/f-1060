@@ -2,7 +2,6 @@
 import React from 'react';
 import TransitionEffect from './TransitionEffect';
 import { Shield, Lock, Bug, AlertTriangle } from 'lucide-react';
-import { searchHuggingFace } from '@/services/searchService';
 import { toast } from "@/components/ui/use-toast";
 
 interface SampleQueriesProps {
@@ -41,10 +40,10 @@ const SampleQueries: React.FC<SampleQueriesProps> = ({ onSearch }) => {
   };
 
   return (
-    <section className="pb-16">
+    <section className="pb-8">
       <div className="container mx-auto px-4">
         <TransitionEffect animation="fade-up" delay={500}>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
             {sampleQueries.map((query, index) => (
               <button
                 key={index}

@@ -89,7 +89,7 @@ const Library = () => {
       <Sidebar />
       <div className="flex-1 ml-20 p-6"> {/* Adjusted margin for collapsed sidebar */}
         <div className="max-w-4xl mx-auto">
-          <TransitionEffect animation="fade-down" delay={100}>
+          <TransitionEffect animation="fade-up" delay={100}>
             <h1 className="text-2xl font-bold mb-6">Search History</h1>
           </TransitionEffect>
           

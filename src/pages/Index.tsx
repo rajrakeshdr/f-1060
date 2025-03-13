@@ -17,6 +17,7 @@ const Index = () => {
   const [user, setUser] = useState<any>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [showRightPanel, setShowRightPanel] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Check if user is authenticated
   useEffect(() => {
@@ -44,6 +45,12 @@ const Index = () => {
     setShowRightPanel(false); // Always hide panel when search begins
   };
 
+  const handleSampleQueryClick = (query: string) => {
+    setSearchQuery(query);
+    // Trigger search with the selected query
+    handleSearchStart();
+  };
+
   return (
     <div className="flex min-h-screen bg-[#2D2F3A] text-white relative overflow-hidden grid-pattern">
       <Sidebar />
@@ -55,8 +62,11 @@ const Index = () => {
               {!hasSearched && <Hero />}
               <SearchSection 
                 onSearchStart={handleSearchStart}
+                initialQuery={searchQuery}
               />
-              {!hasSearched && <SampleQueries />}
+              {!hasSearched && (
+                <SampleQueries onSearch={handleSampleQueryClick} />
+              )}
               {!hasSearched && <Footer />}
             </div>
           </div>

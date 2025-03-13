@@ -1,25 +1,41 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Paperclip, ArrowRight } from 'lucide-react';
 import TransitionEffect from './TransitionEffect';
 import { searchHuggingFace } from '@/services/searchService';
 import SearchResults from './SearchResults';
 import { toast } from "@/components/ui/use-toast";
 
-const SearchSection: React.FC<{ isFullPage?: boolean; onSearchStart?: () => void }> = ({ 
+interface SearchSectionProps {
+  isFullPage?: boolean;
+  onSearchStart?: () => void;
+  initialQuery?: string;
+}
+
+const SearchSection: React.FC<SearchSectionProps> = ({ 
   isFullPage = false,
-  onSearchStart 
+  onSearchStart,
+  initialQuery = ''
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!searchQuery.trim()) {
+  useEffect(() => {
+    // Update search query when initialQuery changes
+    if (initialQuery && initialQuery !== searchQuery) {
+      setSearchQuery(initialQuery);
+      // Auto-search if we get a new initial query
+      if (initialQuery.trim()) {
+        performSearch(initialQuery);
+      }
+    }
+  }, [initialQuery]);
+
+  const performSearch = async (query: string) => {
+    if (!query.trim()) {
       toast({
         title: "Empty search",
         description: "Please enter a search query",
@@ -31,13 +47,13 @@ const SearchSection: React.FC<{ isFullPage?: boolean; onSearchStart?: () => void
     setIsLoading(true);
     setError(undefined);
     
-    // Notify parent component that search has started (to hide overlay)
+    // Notify parent component that search has started
     if (onSearchStart) {
       onSearchStart();
     }
     
     try {
-      const response = await searchHuggingFace(searchQuery);
+      const response = await searchHuggingFace(query);
       
       if (response.error) {
         setError(response.error);
@@ -61,6 +77,11 @@ const SearchSection: React.FC<{ isFullPage?: boolean; onSearchStart?: () => void
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performSearch(searchQuery);
   };
 
   return (

@@ -1,27 +1,44 @@
 
 import React from 'react';
 import TransitionEffect from './TransitionEffect';
-import { ImageIcon, FileBadge, Box, Timer } from 'lucide-react';
+import { Shield, Lock, Bug, AlertTriangle } from 'lucide-react';
+import { searchHuggingFace } from '@/services/searchService';
+import { toast } from "@/components/ui/use-toast";
 
-const SampleQueries: React.FC = () => {
+interface SampleQueriesProps {
+  onSearch?: (query: string) => void;
+}
+
+const SampleQueries: React.FC<SampleQueriesProps> = ({ onSearch }) => {
   const sampleQueries = [
     { 
-      icon: <ImageIcon className="h-5 w-5" />, 
-      text: "Generate me an image of a cat"
+      icon: <Shield className="h-5 w-5" />, 
+      text: "Latest ransomware threats"
     },
     { 
-      icon: <FileBadge className="h-5 w-5" />, 
-      text: "Quicksort in Rust" 
+      icon: <Lock className="h-5 w-5" />, 
+      text: "Zero-day vulnerabilities" 
     },
     { 
-      icon: <Box className="h-5 w-5" />, 
-      text: "Best omakase in NYC" 
+      icon: <Bug className="h-5 w-5" />, 
+      text: "Cybersecurity best practices" 
     },
     { 
-      icon: <Timer className="h-5 w-5" />, 
-      text: "Waymo expanding to highways" 
+      icon: <AlertTriangle className="h-5 w-5" />, 
+      text: "Network security monitoring" 
     }
   ];
+
+  const handleQueryClick = (query: string) => {
+    if (onSearch) {
+      onSearch(query);
+    } else {
+      toast({
+        title: "Search initiated",
+        description: `Searching for: ${query}`,
+      });
+    }
+  };
 
   return (
     <section className="pb-16">
@@ -32,6 +49,7 @@ const SampleQueries: React.FC = () => {
               <button
                 key={index}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#292b3d] text-gray-300 text-sm hover:bg-[#6B46C1] transition-colors border border-gray-700/50"
+                onClick={() => handleQueryClick(query.text)}
               >
                 {query.icon}
                 <span>{query.text}</span>

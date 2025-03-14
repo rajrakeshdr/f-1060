@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Compass, Library, Layout, ChevronLeft, ChevronRight, Building, Plus } from 'lucide-react';
+import { Home, Compass, Library, Layout, ChevronLeft, ChevronRight, Building, Plus, Search } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 const Sidebar = () => {
@@ -16,6 +15,7 @@ const Sidebar = () => {
     { icon: Compass, label: 'Discover', path: '/discover' },
     { icon: Layout, label: 'Spaces', path: '/spaces' },
     { icon: Library, label: 'Library', path: '/library' },
+    { icon: Search, label: 'Dark Web Search', path: '/dark-web-search' },
   ];
 
   const toggleSidebar = () => {
@@ -33,7 +33,6 @@ const Sidebar = () => {
       "fixed left-0 top-0 h-screen bg-[#2D2F3A] border-r border-gray-700/50 p-4 flex flex-col transition-all duration-300 z-30",
       collapsed ? "w-20" : "w-64"
     )}>
-      {/* Toggle button */}
       <button 
         onClick={toggleSidebar} 
         className="absolute -right-3 top-16 bg-[#2D2F3A] border border-gray-700/50 rounded-full p-1 z-40"
@@ -42,7 +41,6 @@ const Sidebar = () => {
         {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
       </button>
 
-      {/* Organizations */}
       <div className="mb-6">
         {!collapsed && (
           <div className="flex items-center justify-between mb-2 px-4">
@@ -74,7 +72,6 @@ const Sidebar = () => {
         </ul>
       </div>
 
-      {/* Navigation Menu */}
       <nav className="flex-1">
         <ul className="space-y-2">
           {menuItems.map((item) => {

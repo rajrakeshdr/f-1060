@@ -10,6 +10,7 @@ import Spaces from "./pages/Spaces";
 import Library from "./pages/Library";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import DarkWebSearch from "./pages/DarkWebSearch";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/discover" element={<Discover />} />
           <Route path="/spaces" element={<Spaces />} />
           <Route path="/library" element={<Library />} />
+          <Route path="/dark-web-search" element={<DarkWebSearch />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/profile" element={<Settings />} />
           <Route path="/settings/personalize" element={<Settings />} />

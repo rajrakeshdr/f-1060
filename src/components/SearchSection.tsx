@@ -22,6 +22,7 @@ const SearchSection: React.FC<SearchSectionProps> = ({
   const [results, setResults] = useState('');
   const [error, setError] = useState<string | undefined>(undefined);
   const [hasSearched, setHasSearched] = useState(false);
+  const [currentQuery, setCurrentQuery] = useState('');
 
   useEffect(() => {
     // Update search query when initialQuery changes
@@ -46,6 +47,7 @@ const SearchSection: React.FC<SearchSectionProps> = ({
 
     setIsLoading(true);
     setError(undefined);
+    setCurrentQuery(query);
     
     // Notify parent component that search has started
     if (onSearchStart) {
@@ -87,7 +89,12 @@ const SearchSection: React.FC<SearchSectionProps> = ({
   return (
     <>
       {hasSearched && (
-        <SearchResults isLoading={isLoading} results={results} error={error} />
+        <SearchResults 
+          isLoading={isLoading} 
+          results={results} 
+          error={error} 
+          query={currentQuery}
+        />
       )}
     
       <section className="fixed bottom-0 left-0 right-0 z-20 pb-6 pt-4 bg-[#17182a] border-t border-gray-700/50">
@@ -100,7 +107,7 @@ const SearchSection: React.FC<SearchSectionProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Ask anything..."
-                  className="w-full py-4 px-5 rounded-lg border border-gray-700/50 bg-transparent focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all text-lg text-gray-200"
+                  className="w-full py-4 px-5 rounded-lg border border-gray-700/50 bg-transparent focus:outline-none focus:ring-2 focus:ring-purple-500/30 transition-all text-lg text-gray-200 font-sans"
                   disabled={isLoading}
                 />
                 <div className="absolute right-3 flex space-x-1">
@@ -126,7 +133,7 @@ const SearchSection: React.FC<SearchSectionProps> = ({
               </div>
               <div className="flex justify-between items-center mt-2">
                 <div className="flex items-center">
-                  <span className="text-xs text-gray-400 px-2 py-0.5 rounded bg-gray-800/50 border border-gray-700/50">Phind-70B</span>
+                  <span className="text-xs text-gray-400 px-2 py-0.5 rounded bg-gray-800/50 border border-gray-700/50 font-mono">model-aria</span>
                 </div>
                 {!isLoading && (
                   <button className="text-xs text-gray-400 hover:text-gray-300 px-2 py-0.5 rounded border border-gray-700/50">

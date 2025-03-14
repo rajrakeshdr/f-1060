@@ -1,17 +1,53 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Skeleton } from "@/components/ui/skeleton";
 import TransitionEffect from './TransitionEffect';
 import { ExternalLink, ThumbsUp, ThumbsDown, Copy, Share2, Expand } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { supabase } from '@/integrations/supabase/client';
+
+interface SearchHistoryItem {
+  query: string;
+  timestamp: string;
+  id: string;
+}
 
 interface SearchResultsProps {
   isLoading: boolean;
   results: string;
   error?: string;
+  query?: string;
 }
 
-const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error }) => {
+const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error, query }) => {
+  
+  useEffect(() => {
+    if (query && results && !isLoading && !error) {
+      saveSearchToHistory(query);
+    }
+  }, [query, results, isLoading, error]);
+
+  const saveSearchToHistory = (searchQuery: string) => {
+    if (!searchQuery.trim()) return;
+    
+    const existingHistory = localStorage.getItem('searchHistory');
+    let searchHistory: SearchHistoryItem[] = existingHistory 
+      ? JSON.parse(existingHistory) 
+      : [];
+    
+    const newItem: SearchHistoryItem = {
+      id: Date.now().toString(),
+      query: searchQuery,
+      timestamp: new Date().toISOString()
+    };
+    
+    const updatedHistory = [
+      newItem,
+      ...searchHistory.filter(item => item.query !== searchQuery)
+    ].slice(0, 50);
+    
+    localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
+  };
+
   if (isLoading) {
     return (
       <div className="w-full max-w-6xl mx-auto px-4 py-6">
@@ -46,10 +82,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
     return null;
   }
 
-  // Split the response into paragraphs for better display
   const paragraphs = results.split('\n').filter(p => p.trim() !== '');
   
-  // Sources for the UI demonstration
   const sources = [
     {
       id: 1,
@@ -74,18 +108,17 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
   return (
     <div className="w-full max-w-6xl mx-auto px-4 pb-28 pt-4">
       <div className="flex flex-col md:flex-row gap-4">
-        {/* Main response area */}
         <div className="flex-1">
           <TransitionEffect animation="fade-in" delay={300}>
             <div className="bg-[#1e202f] rounded-lg p-4 mb-5">
               <div className="flex items-center text-purple-400 text-sm font-medium mb-4">
                 <span className="flex items-center px-2 py-1 rounded-full bg-purple-900/30 text-purple-400">
-                  PHIND-70B MODEL
+                  MODEL-ARIA
                 </span>
               </div>
               
               <div className="p-2">
-                <div className="text-white text-lg mb-4">
+                <div className="text-white text-lg mb-4 font-heading">
                   {paragraphs.map((paragraph, index) => (
                     <p key={index} className="mb-4">
                       {paragraph}
@@ -115,7 +148,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
           </TransitionEffect>
 
           <div className="mt-6">
-            <h3 className="text-base font-medium text-gray-300 mb-3">Dive deeper</h3>
+            <h3 className="text-base font-medium text-gray-300 mb-3 font-heading">Dive deeper</h3>
             <div className="space-y-2">
               {["Tell me more about cybersecurity best practices", 
                 "What are common security vulnerabilities?",
@@ -133,10 +166,9 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
           </div>
         </div>
         
-        {/* Sources panel */}
         <div className="w-full md:w-80 shrink-0">
           <div className="bg-[#1e202f] rounded-lg p-4 sticky top-4">
-            <h3 className="text-base font-medium text-gray-300 mb-3">Sources</h3>
+            <h3 className="text-base font-medium text-gray-300 mb-3 font-heading">Sources</h3>
             <div className="space-y-3">
               {sources.map((source) => (
                 <a 
@@ -153,7 +185,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
                     <div>
                       <h4 className="font-medium text-sm">{source.title}</h4>
                       <p className="text-xs text-gray-400 mt-1">{source.domain}</p>
-                      <p className="text-xs text-gray-300 mt-1 line-clamp-2">{source.snippet}</p>
+                      <p className="text-xs text-gray-300 mt-1 line-clamp-2 font-mono">{source.snippet}</p>
                     </div>
                   </div>
                 </a>

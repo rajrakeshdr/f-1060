@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,28 +24,51 @@ interface UserProfile {
   email?: string;
   phone?: string;
   fullName?: string;
+  firstName?: string;
+  lastName?: string;
   username?: string;
+  address?: string;
 }
 
-const DarkWebSearchForm = () => {
+interface DarkWebSearchFormProps {
+  userProfile?: UserProfile | null;
+}
+
+const DarkWebSearchForm: React.FC<DarkWebSearchFormProps> = ({ userProfile }) => {
   const [activeTab, setActiveTab] = useState("email");
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<any[]>([]);
 
   // Initialize the form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      phone: "",
-      username: "",
-      fullName: "",
+      email: userProfile?.email || "",
+      phone: userProfile?.phone || "",
+      username: userProfile?.username || "",
+      fullName: userProfile?.fullName || 
+                (userProfile?.firstName && userProfile?.lastName) ? 
+                `${userProfile.firstName} ${userProfile.lastName}` : "",
     },
   });
 
-  // Check if user is logged in and fetch profile data
+  // Update form values when userProfile changes
+  useEffect(() => {
+    if (userProfile) {
+      form.setValue("email", userProfile.email || "");
+      form.setValue("phone", userProfile.phone || "");
+      form.setValue("username", userProfile.username || "");
+      form.setValue("fullName", 
+        userProfile.fullName || 
+        ((userProfile.firstName && userProfile.lastName) ? 
+        `${userProfile.firstName} ${userProfile.lastName}` : "")
+      );
+    }
+  }, [userProfile, form]);
+
+  // Check if user is logged in and fetch search history
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -52,33 +76,16 @@ const DarkWebSearchForm = () => {
       if (session) {
         setIsLoggedIn(true);
         
-        // Fetch user profile if logged in
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          const email = user.email || "";
-          
-          // Extract name from user metadata if available
-          const fullName = user.user_metadata?.full_name || 
-                          user.user_metadata?.name || 
-                          "";
-          
-          // Set the user profile data
-          setUserProfile({
-            email,
-            fullName,
-            // Other fields would need to be fetched from a profiles table
-          });
-          
-          // Update form values with user profile data
-          form.setValue("email", email);
-          form.setValue("fullName", fullName);
+        // Load search history from localStorage
+        const savedHistory = localStorage.getItem('darkWebSearchHistory');
+        if (savedHistory) {
+          setSearchHistory(JSON.parse(savedHistory));
         }
       }
     };
     
     checkSession();
-  }, [form]);
+  }, []);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -107,16 +114,18 @@ const DarkWebSearchForm = () => {
       setSearchResults(mockResults);
       
       // Save search to history
-      const searchHistory = JSON.parse(localStorage.getItem('darkWebSearchHistory') || '[]');
-      searchHistory.push({
+      const newSearch = {
         query: activeTab === 'email' ? values.email : 
                activeTab === 'phone' ? values.phone : 
                activeTab === 'username' ? values.username : values.fullName,
         type: activeTab,
         timestamp: new Date().toISOString(),
         results: mockResults
-      });
-      localStorage.setItem('darkWebSearchHistory', JSON.stringify(searchHistory));
+      };
+      
+      const updatedHistory = [newSearch, ...searchHistory];
+      setSearchHistory(updatedHistory);
+      localStorage.setItem('darkWebSearchHistory', JSON.stringify(updatedHistory));
       
       toast({
         title: "Search Complete",
@@ -135,170 +144,138 @@ const DarkWebSearchForm = () => {
   };
 
   return (
-    <TransitionEffect animation="fade-up" delay={100}>
-      <Card className="w-full max-w-3xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl font-heading">Dark Web Breach Search</CardTitle>
-          <CardDescription>
-            Check if your personal information has been exposed in known data breaches.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoggedIn && userProfile && (
-            <div className="mb-6 p-4 bg-purple-900/20 rounded-lg border border-purple-600/30">
-              <h3 className="text-lg font-medium mb-2 text-purple-300">Logged in as:</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {userProfile.email && (
-                  <div>
-                    <span className="text-gray-400 text-sm">Email:</span>
-                    <p className="font-medium">{userProfile.email}</p>
-                  </div>
-                )}
-                {userProfile.fullName && (
-                  <div>
-                    <span className="text-gray-400 text-sm">Name:</span>
-                    <p className="font-medium">{userProfile.fullName}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <Tabs defaultValue="email" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="w-full mb-4">
-                  <TabsTrigger value="email" className="flex-1">Email</TabsTrigger>
-                  <TabsTrigger value="phone" className="flex-1">Phone</TabsTrigger>
-                  <TabsTrigger value="username" className="flex-1">Username</TabsTrigger>
-                  <TabsTrigger value="fullName" className="flex-1">Full Name</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="email" className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email Address</FormLabel>
-                        <FormControl>
-                          <Input placeholder="your@email.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="phone" className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+1 (555) 123-4567" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="username" className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                          <Input placeholder="your_username" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="fullName" className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="fullName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="John Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </TabsContent>
-              </Tabs>
+    <Card className="bg-gray-800/70 border-gray-700/50">
+      <CardHeader className="bg-purple-800 rounded-t-lg">
+        <CardTitle className="text-white">Dark Web Breach Search</CardTitle>
+        <CardDescription className="text-gray-200">
+          Check if your personal information has been exposed
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pt-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <Tabs defaultValue="email" value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="w-full mb-4 bg-gray-700/70">
+                <TabsTrigger value="email" className="flex-1 data-[state=active]:bg-purple-700">Email</TabsTrigger>
+                <TabsTrigger value="phone" className="flex-1 data-[state=active]:bg-purple-700">Phone</TabsTrigger>
+                <TabsTrigger value="username" className="flex-1 data-[state=active]:bg-purple-700">Username</TabsTrigger>
+                <TabsTrigger value="fullName" className="flex-1 data-[state=active]:bg-purple-700">Full Name</TabsTrigger>
+              </TabsList>
               
-              <Button 
-                type="submit" 
-                className="w-full bg-purple-600 hover:bg-purple-700"
-                disabled={isLoading}
-              >
-                {isLoading ? "Searching..." : "Search Dark Web"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
+              <TabsContent value="email" className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="your@email.com" {...field} className="bg-gray-700/50 border-gray-600" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+              
+              <TabsContent value="phone" className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+1 (555) 123-4567" {...field} className="bg-gray-700/50 border-gray-600" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+              
+              <TabsContent value="username" className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="your_username" {...field} className="bg-gray-700/50 border-gray-600" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+              
+              <TabsContent value="fullName" className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John Doe" {...field} className="bg-gray-700/50 border-gray-600" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+            </Tabs>
+            
+            <Button 
+              type="submit" 
+              className="w-full bg-purple-600 hover:bg-purple-700"
+              disabled={isLoading}
+            >
+              {isLoading ? "Searching..." : "Search Dark Web"}
+            </Button>
+          </form>
+        </Form>
         
-        {searchResults.length > 0 && (
-          <CardFooter className="flex flex-col">
-            <h3 className="text-xl font-medium mb-4 text-red-400">Search Results</h3>
-            <div className="space-y-4 w-full">
-              {searchResults.map((result, index) => (
-                <div key={index} className="p-4 bg-red-900/20 border border-red-600/30 rounded-lg">
-                  <div className="flex justify-between mb-2">
-                    <span className="font-medium text-white">{result.source}</span>
-                    <span className="text-sm text-gray-400">{result.breachDate}</span>
+        {searchHistory.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-sm font-medium mb-2 text-gray-300">Recent Searches</h3>
+            <div className="space-y-2 max-h-[150px] overflow-y-auto">
+              {searchHistory.slice(0, 5).map((search, index) => (
+                <div key={index} className="p-2 bg-gray-700/50 rounded-md text-xs">
+                  <div className="flex justify-between">
+                    <span className="font-medium">{search.type}: {search.query}</span>
+                    <span className="text-gray-400">{new Date(search.timestamp).toLocaleDateString()}</span>
                   </div>
-                  <p className="text-gray-300">{result.description}</p>
-                  <div className="mt-2">
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      result.severity === 'high' ? 'bg-red-600/30 text-red-300' : 
-                      result.severity === 'medium' ? 'bg-amber-600/30 text-amber-300' :
-                      'bg-blue-600/30 text-blue-300'
-                    }`}>
-                      {result.severity.toUpperCase()} RISK
-                    </span>
-                  </div>
+                  <p className="text-gray-400 mt-1">
+                    Found {search.results.length} breach{search.results.length !== 1 ? 'es' : ''}
+                  </p>
                 </div>
               ))}
             </div>
-          </CardFooter>
+          </div>
         )}
-      </Card>
+      </CardContent>
       
-      <div className="mt-8 max-w-3xl mx-auto">
-        <h3 className="text-xl font-medium mb-4">Supported Services</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <CardFooter className="flex flex-col border-t border-gray-700/50 pt-4">
+        <h3 className="text-sm font-medium mb-2 w-full">Supported Services</h3>
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-2 w-full">
           {[
             "Firefox Monitor",
+            "Have I Been Pwned?",
+            "Dehashed",
             "Aura",
             "Identity Guard",
-            "Have I Been Pwned?",
-            "MyPwd from Axur",
-            "Dehashed",
-            "Hashcast from Azur",
             "Intelligence X",
-            "Dashlane",
-            "IDStrong"
+            "Dashlane"
           ].map((service, index) => (
-            <div key={index} className="p-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-center hover:bg-gray-700/50 transition-colors">
-              <span className="text-sm font-medium">{service}</span>
+            <div key={index} className="p-2 bg-gray-700/50 border border-gray-600/50 rounded-md text-xs text-center hover:bg-gray-600/50 transition-colors">
+              <span className="font-medium">{service}</span>
             </div>
           ))}
         </div>
-      </div>
-    </TransitionEffect>
+      </CardFooter>
+    </Card>
   );
 };
 

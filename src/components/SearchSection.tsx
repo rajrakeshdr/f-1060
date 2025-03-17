@@ -6,7 +6,7 @@ import { searchHuggingFace } from '@/services/searchService';
 import SearchResults from './SearchResults';
 import { toast } from "@/components/ui/use-toast";
 import { useSearchParams } from 'react-router-dom';
-import { getConversationsByThread } from '@/services/conversationService';
+import { getConversationsByThread, saveConversation } from '@/services/conversationService';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SearchSectionProps {
@@ -113,6 +113,7 @@ const SearchSection: React.FC<SearchSectionProps> = ({
     }
     
     try {
+      console.log("Starting search with query:", query);
       const response = await searchHuggingFace(query);
       
       if (response.error) {
@@ -122,10 +123,30 @@ const SearchSection: React.FC<SearchSectionProps> = ({
           description: response.error,
           variant: "destructive"
         });
-      } else {
+      } else if (response.response) {
         setResults(response.response);
+        setHasSearched(true);
+        
+        // Save conversation if user is logged in
+        if (isLoggedIn) {
+          console.log("Attempting to save conversation");
+          const savedThreadId = await saveConversation(query, response.response, threadId);
+          if (!savedThreadId) {
+            console.error("Failed to save conversation");
+          } else {
+            console.log("Conversation saved with thread ID:", savedThreadId);
+          }
+        } else {
+          console.log("User not logged in, skipping conversation save");
+        }
+      } else {
+        setError("Received empty response from search API");
+        toast({
+          title: "Search error",
+          description: "Received empty response from search API",
+          variant: "destructive"
+        });
       }
-      setHasSearched(true);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
       setError(errorMessage);

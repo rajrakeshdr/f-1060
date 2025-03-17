@@ -19,6 +19,14 @@ export const saveConversation = async (
 
     const userId = session.user.id;
     const newThreadId = threadId || crypto.randomUUID();
+    
+    console.log("Saving conversation with:", {
+      userId,
+      query: query.substring(0, 50) + "...",
+      responseLength: response.length,
+      threadId: newThreadId,
+      title: title || (query.substring(0, 50) + "...")
+    });
 
     const { data, error } = await supabase
       .from('conversation_history')
@@ -27,7 +35,7 @@ export const saveConversation = async (
         query,
         response,
         thread_id: newThreadId,
-        title: title || query.substring(0, 50) + '...' // Default title as truncated query
+        title: title || (query.substring(0, 50) + "...")
       })
       .select('thread_id');
 
@@ -36,6 +44,7 @@ export const saveConversation = async (
       return null;
     }
 
+    console.log("Conversation saved successfully:", data);
     return newThreadId;
   } catch (err) {
     console.error("Error in saveConversation:", err);

@@ -6,6 +6,8 @@ interface SearchResponse {
 
 export const searchHuggingFace = async (query: string): Promise<SearchResponse> => {
   try {
+    console.log("Sending request to HuggingFace API with query:", query);
+    
     const response = await fetch("https://rajrakeshdr-intelliSOC.hf.space/search", {
       method: 'POST',
       headers: {
@@ -14,11 +16,16 @@ export const searchHuggingFace = async (query: string): Promise<SearchResponse> 
       body: JSON.stringify({ query }),
     });
 
+    console.log("API response status:", response.status);
+    
     if (!response.ok) {
-      throw new Error(`API response status: ${response.status}`);
+      const errorText = await response.text();
+      console.error("API error details:", errorText);
+      throw new Error(`API response status: ${response.status}${errorText ? ` - ${errorText}` : ''}`);
     }
 
     const data = await response.json();
+    console.log("API response data:", data);
     return data;
   } catch (error) {
     console.error("Search API error:", error);

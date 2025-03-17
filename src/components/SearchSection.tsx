@@ -5,6 +5,9 @@ import TransitionEffect from './TransitionEffect';
 import { searchHuggingFace } from '@/services/searchService';
 import SearchResults from './SearchResults';
 import { toast } from "@/components/ui/use-toast";
+import { useSearchParams } from 'react-router-dom';
+import { getConversationsByThread } from '@/services/conversationService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SearchSectionProps {
   isFullPage?: boolean;
@@ -23,6 +26,61 @@ const SearchSection: React.FC<SearchSectionProps> = ({
   const [error, setError] = useState<string | undefined>(undefined);
   const [hasSearched, setHasSearched] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // Check for thread parameter in URL
+  const threadId = searchParams.get('thread');
+  
+  // Check auth status on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+      
+      // Set up auth state change listener
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (event, session) => {
+          setIsLoggedIn(!!session);
+        }
+      );
+      
+      return () => {
+        subscription.unsubscribe();
+      };
+    };
+    
+    checkAuth();
+  }, []);
+
+  // Load conversation history if a thread ID is provided
+  useEffect(() => {
+    if (threadId && isLoggedIn) {
+      const loadConversation = async () => {
+        try {
+          const conversations = await getConversationsByThread(threadId);
+          
+          if (conversations.length > 0) {
+            // Get the most recent query and response
+            const latestConversation = conversations[conversations.length - 1];
+            setCurrentQuery(latestConversation.query);
+            setResults(latestConversation.response);
+            setSearchQuery(latestConversation.query);
+            setHasSearched(true);
+          }
+        } catch (error) {
+          console.error("Failed to load conversation:", error);
+          toast({
+            title: "Error loading conversation",
+            description: "Failed to load the conversation thread",
+            variant: "destructive"
+          });
+        }
+      };
+      
+      loadConversation();
+    }
+  }, [threadId, isLoggedIn]);
 
   useEffect(() => {
     // Update search query when initialQuery changes

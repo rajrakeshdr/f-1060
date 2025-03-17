@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import TransitionEffect from './TransitionEffect';
 import { ExternalLink, ThumbsUp, ThumbsDown, Copy, Share2, Expand } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import { supabase } from '@/integrations/supabase/client';
+import { saveConversation } from '@/services/conversationService';
 
 interface SearchHistoryItem {
   query: string;
@@ -23,6 +23,16 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
   useEffect(() => {
     if (query && results && !isLoading && !error) {
       saveSearchToHistory(query);
+      
+      const saveToSupabase = async () => {
+        try {
+          await saveConversation(query, results);
+        } catch (err) {
+          console.error("Failed to save conversation to database:", err);
+        }
+      };
+      
+      saveToSupabase();
     }
   }, [query, results, isLoading, error]);
 

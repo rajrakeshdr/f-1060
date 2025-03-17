@@ -22,3 +22,13 @@ export interface SearchHistoryItem {
   timestamp: string;
   results: SearchResult[];
 }
+
+export interface ConversationHistoryItem {
+  id: string;
+  user_id: string;
+  query: string;
+  response: string;
+  timestamp: string;
+  thread_id: string;
+  title?: string;
+}

@@ -17,7 +17,7 @@ export const searchHuggingFace = async (query: string, userId?: string, threadId
     const requestBody = {
       query,
       user_id,
-      thread_id: threadId || null,
+      thread_id: threadId || "", // Convert null to empty string to avoid API validation error
       context: "You are a cybersecurity expert providing detailed information based on the query."
     };
     

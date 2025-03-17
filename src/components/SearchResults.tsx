@@ -1,9 +1,9 @@
-
 import React, { useEffect } from 'react';
 import { Skeleton } from "@/components/ui/skeleton";
 import TransitionEffect from './TransitionEffect';
 import { ExternalLink, ThumbsUp, ThumbsDown, Copy, Share2, Expand } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 interface SearchHistoryItem {
   query: string;
@@ -83,7 +83,6 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
     return null;
   }
 
-  // Try to parse results if they're in JSON format
   let formattedResults = results;
   try {
     if (results.startsWith('{') && results.endsWith('}')) {

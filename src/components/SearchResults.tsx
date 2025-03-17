@@ -1,9 +1,9 @@
+
 import React, { useEffect } from 'react';
 import { Skeleton } from "@/components/ui/skeleton";
 import TransitionEffect from './TransitionEffect';
 import { ExternalLink, ThumbsUp, ThumbsDown, Copy, Share2, Expand } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import { saveConversation } from '@/services/conversationService';
 
 interface SearchHistoryItem {
   query: string;
@@ -16,23 +16,14 @@ interface SearchResultsProps {
   results: string;
   error?: string;
   query?: string;
+  threadId?: string | null;
 }
 
-const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error, query }) => {
+const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error, query, threadId }) => {
   
   useEffect(() => {
     if (query && results && !isLoading && !error) {
       saveSearchToHistory(query);
-      
-      const saveToSupabase = async () => {
-        try {
-          await saveConversation(query, results);
-        } catch (err) {
-          console.error("Failed to save conversation to database:", err);
-        }
-      };
-      
-      saveToSupabase();
     }
   }, [query, results, isLoading, error]);
 
@@ -92,7 +83,20 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
     return null;
   }
 
-  const paragraphs = results.split('\n').filter(p => p.trim() !== '');
+  // Try to parse results if they're in JSON format
+  let formattedResults = results;
+  try {
+    if (results.startsWith('{') && results.endsWith('}')) {
+      const parsedResults = JSON.parse(results);
+      if (parsedResults["Use Clear Language: Avoid ambiguity and complex wording"]) {
+        formattedResults = parsedResults["Use Clear Language: Avoid ambiguity and complex wording"];
+      }
+    }
+  } catch (e) {
+    console.log("Results are not in JSON format, using as-is");
+  }
+
+  const paragraphs = formattedResults.split('\n').filter(p => p.trim() !== '');
   
   const sources = [
     {
@@ -123,8 +127,13 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
             <div className="bg-[#1e202f] rounded-lg p-4 mb-5">
               <div className="flex items-center text-purple-400 text-sm font-medium mb-4">
                 <span className="flex items-center px-2 py-1 rounded-full bg-purple-900/30 text-purple-400">
-                  MODEL-ARIA
+                  MODEL-MIXTRAL
                 </span>
+                {threadId && (
+                  <span className="ml-2 text-xs text-gray-400">
+                    Thread ID: {threadId.substring(0, 8)}...
+                  </span>
+                )}
               </div>
               
               <div className="p-2">
@@ -143,7 +152,16 @@ const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, results, error
                   <button className="p-2 hover:bg-gray-700/30 rounded-md flex items-center gap-1 transition-colors">
                     <ThumbsDown size={16} />
                   </button>
-                  <button className="p-2 hover:bg-gray-700/30 rounded-md flex items-center gap-1 transition-colors">
+                  <button 
+                    className="p-2 hover:bg-gray-700/30 rounded-md flex items-center gap-1 transition-colors"
+                    onClick={() => {
+                      navigator.clipboard.writeText(formattedResults);
+                      toast({
+                        title: "Copied to clipboard",
+                        description: "The response has been copied to your clipboard",
+                      });
+                    }}
+                  >
                     <Copy size={16} />
                   </button>
                   <button className="p-2 hover:bg-gray-700/30 rounded-md flex items-center gap-1 transition-colors">

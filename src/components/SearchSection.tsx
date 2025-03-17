@@ -6,7 +6,7 @@ import { searchHuggingFace } from '@/services/searchService';
 import SearchResults from './SearchResults';
 import { toast } from "@/components/ui/use-toast";
 import { useSearchParams } from 'react-router-dom';
-import { getConversationsByThread, saveConversation } from '@/services/conversationService';
+import { getConversationsByThread } from '@/services/conversationService';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SearchSectionProps {
@@ -28,20 +28,24 @@ const SearchSection: React.FC<SearchSectionProps> = ({
   const [currentQuery, setCurrentQuery] = useState('');
   const [searchParams] = useSearchParams();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [threadId, setThreadId] = useState<string | null>(null);
   
   // Check for thread parameter in URL
-  const threadId = searchParams.get('thread');
+  const threadIdFromUrl = searchParams.get('thread');
   
   // Check auth status on component mount
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setIsLoggedIn(!!session);
+      setUserId(session?.user?.id || null);
       
       // Set up auth state change listener
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         (event, session) => {
           setIsLoggedIn(!!session);
+          setUserId(session?.user?.id || null);
         }
       );
       
@@ -52,6 +56,13 @@ const SearchSection: React.FC<SearchSectionProps> = ({
     
     checkAuth();
   }, []);
+
+  // Set thread ID from URL parameter
+  useEffect(() => {
+    if (threadIdFromUrl) {
+      setThreadId(threadIdFromUrl);
+    }
+  }, [threadIdFromUrl]);
 
   // Load conversation history if a thread ID is provided
   useEffect(() => {
@@ -114,7 +125,7 @@ const SearchSection: React.FC<SearchSectionProps> = ({
     
     try {
       console.log("Starting search with query:", query);
-      const response = await searchHuggingFace(query);
+      const response = await searchHuggingFace(query, userId || undefined, threadId || undefined);
       
       if (response.error) {
         setError(response.error);
@@ -124,21 +135,20 @@ const SearchSection: React.FC<SearchSectionProps> = ({
           variant: "destructive"
         });
       } else if (response.response) {
-        setResults(response.response);
+        // Handle both string and object responses
+        const responseText = typeof response.response === 'string' 
+          ? response.response 
+          : JSON.stringify(response.response);
+          
+        setResults(responseText);
         setHasSearched(true);
         
-        // Save conversation if user is logged in
-        if (isLoggedIn) {
-          console.log("Attempting to save conversation");
-          const savedThreadId = await saveConversation(query, response.response, threadId);
-          if (!savedThreadId) {
-            console.error("Failed to save conversation");
-          } else {
-            console.log("Conversation saved with thread ID:", savedThreadId);
-          }
-        } else {
-          console.log("User not logged in, skipping conversation save");
+        // Update thread ID if returned from API
+        if (response.thread_id) {
+          setThreadId(response.thread_id);
         }
+        
+        console.log("Search completed successfully with thread ID:", response.thread_id);
       } else {
         setError("Received empty response from search API");
         toast({
@@ -173,6 +183,7 @@ const SearchSection: React.FC<SearchSectionProps> = ({
           results={results} 
           error={error} 
           query={currentQuery}
+          threadId={threadId}
         />
       )}
     
@@ -212,7 +223,7 @@ const SearchSection: React.FC<SearchSectionProps> = ({
               </div>
               <div className="flex justify-between items-center mt-2">
                 <div className="flex items-center">
-                  <span className="text-xs text-gray-400 px-2 py-0.5 rounded bg-gray-800/50 border border-gray-700/50 font-mono">model-aria</span>
+                  <span className="text-xs text-gray-400 px-2 py-0.5 rounded bg-gray-800/50 border border-gray-700/50 font-mono">model-mixtral</span>
                 </div>
                 {!isLoading && (
                   <button className="text-xs text-gray-400 hover:text-gray-300 px-2 py-0.5 rounded border border-gray-700/50">

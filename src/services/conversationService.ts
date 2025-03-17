@@ -28,23 +28,10 @@ export const saveConversation = async (
       title: title || (query.substring(0, 50) + "...")
     });
 
-    const { data, error } = await supabase
-      .from('conversation_history')
-      .insert({
-        user_id: userId,
-        query,
-        response,
-        thread_id: newThreadId,
-        title: title || (query.substring(0, 50) + "...")
-      })
-      .select('thread_id');
+    // We'll use our backend API to save the conversation
+    // This function is kept for compatibility but actual saving is done by the API
+    console.log("Note: The backend API is handling conversation saving");
 
-    if (error) {
-      console.error("Error saving conversation:", error);
-      return null;
-    }
-
-    console.log("Conversation saved successfully:", data);
     return newThreadId;
   } catch (err) {
     console.error("Error in saveConversation:", err);
@@ -56,18 +43,38 @@ export const getConversationsByThread = async (
   threadId: string
 ): Promise<ConversationHistoryItem[]> => {
   try {
-    const { data, error } = await supabase
-      .from('conversation_history')
-      .select('*')
-      .eq('thread_id', threadId)
-      .order('timestamp', { ascending: true });
-
-    if (error) {
-      console.error("Error fetching conversation thread:", error);
+    // Get current user session for authentication
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      console.error("User not authenticated");
       return [];
     }
 
-    return data as ConversationHistoryItem[];
+    const userId = session.user.id;
+    const response = await fetch(`https://rajrakeshdr-intelliSOC.hf.space/history/${userId}?thread_id=${threadId}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("API error details:", errorText);
+      throw new Error(`API response status: ${response.status}${errorText ? ` - ${errorText}` : ''}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.status === "success" && Array.isArray(data.history)) {
+      return data.history.map((item: any) => ({
+        id: item.id,
+        user_id: item.user_id,
+        query: item.query,
+        response: typeof item.response === 'string' ? item.response : JSON.stringify(item.response),
+        timestamp: new Date(item.timestamp).toISOString(),
+        thread_id: item.thread_id,
+        title: item.title
+      }));
+    }
+    
+    return [];
   } catch (err) {
     console.error("Error in getConversationsByThread:", err);
     return [];
@@ -83,26 +90,28 @@ export const getUserConversations = async (): Promise<ConversationHistoryItem[]>
       return [];
     }
 
-    // Get unique threads with the latest message from each
-    const { data, error } = await supabase
-      .from('conversation_history')
-      .select('*')
-      .order('timestamp', { ascending: false });
-
-    if (error) {
-      console.error("Error fetching user conversations:", error);
-      return [];
+    const userId = session.user.id;
+    const response = await fetch(`https://rajrakeshdr-intelliSOC.hf.space/threads/${userId}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("API error details:", errorText);
+      throw new Error(`API response status: ${response.status}${errorText ? ` - ${errorText}` : ''}`);
     }
 
-    // Group by thread_id and get the latest entry for each thread
-    const threadMap = new Map<string, ConversationHistoryItem>();
-    (data as ConversationHistoryItem[]).forEach(item => {
-      if (!threadMap.has(item.thread_id)) {
-        threadMap.set(item.thread_id, item);
-      }
-    });
-
-    return Array.from(threadMap.values());
+    const data = await response.json();
+    
+    if (data.status === "success" && Array.isArray(data.threads)) {
+      // Return the thread list from the API
+      return data.threads.map((thread: any) => ({
+        id: crypto.randomUUID(), // Generate an id for the component
+        thread_id: thread.thread_id,
+        title: thread.title,
+        timestamp: new Date().toISOString() // The API doesn't provide a timestamp for threads
+      }));
+    }
+    
+    return [];
   } catch (err) {
     console.error("Error in getUserConversations:", err);
     return [];
@@ -111,6 +120,7 @@ export const getUserConversations = async (): Promise<ConversationHistoryItem[]>
 
 export const deleteConversationThread = async (threadId: string): Promise<boolean> => {
   try {
+    // Note: Your API doesn't have a delete endpoint, so we'll use Supabase directly
     const { error } = await supabase
       .from('conversation_history')
       .delete()

@@ -36,6 +36,15 @@ export const searchHuggingFace = async (query: string, userId?: string, threadId
     if (!response.ok) {
       const errorText = await response.text();
       console.error("API error details:", errorText);
+      
+      // Check if this is a RLS policy error
+      if (errorText.includes("row-level security policy")) {
+        return {
+          response: "",
+          error: "Authorization error: You don't have permission to save conversations. Please check your database permissions or contact support."
+        };
+      }
+      
       throw new Error(`API response status: ${response.status}${errorText ? ` - ${errorText}` : ''}`);
     }
 
